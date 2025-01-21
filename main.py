@@ -11,9 +11,10 @@ class Bonus(Enum):
 
 @dataclass
 class Hule:
-    to: int
+    to: str
     cnt: int
     point: int
+    zimo: bool
     bonus: Bonus
 
 
@@ -95,23 +96,23 @@ class Jan:
                 for user in self.users:
                     if not user.seat == hule['seat']:
                         if ippatsu > 0:
-                            user.transaction.append(Hule(to=hule['seat'], point=self.RATE*ippatsu, cnt=ippatsu, bonus=Bonus.ippatsu))
+                            user.transaction.append(Hule(to=winner.nickname, point=self.RATE*ippatsu, cnt=ippatsu, bonus=Bonus.ippatsu, zimo=True))
                             winner.ippatsu += 1
                         if ura_dora > 0:
-                            user.transaction.append(Hule(to=hule['seat'], point=self.RATE*ura_dora, cnt=ura_dora, bonus=Bonus.ura_dora))
+                            user.transaction.append(Hule(to=winner.nickname, point=self.RATE*ura_dora, cnt=ura_dora, bonus=Bonus.ura_dora, zimo=True))
                             winner.ura_dora += 1
                         if aka_dora > 0:
-                            user.transaction.append(Hule(to=hule['seat'], point=self.RATE*aka_dora, cnt=aka_dora, bonus=Bonus.aka_dora))
+                            user.transaction.append(Hule(to=winner.nickname, point=self.RATE*aka_dora, cnt=aka_dora, bonus=Bonus.aka_dora, zimo=True))
                             winner.aka_dora += 1
             else: #ロン
                 if ippatsu > 0:
-                    fangchong.transaction.append(Hule(to=hule['seat'], point=self.RATE*ippatsu, cnt=ippatsu, bonus=Bonus.ippatsu))
+                    fangchong.transaction.append(Hule(to=winner.nickname, point=self.RATE*ippatsu, cnt=ippatsu, bonus=Bonus.ippatsu, zimo=False))
                     winner.ippatsu += ippatsu
                 if ura_dora > 0:
-                    fangchong.transaction.append(Hule(to=hule['seat'], point=self.RATE*ura_dora, cnt=ura_dora, bonus=Bonus.ura_dora))
+                    fangchong.transaction.append(Hule(to=winner.nickname, point=self.RATE*ura_dora, cnt=ura_dora, bonus=Bonus.ura_dora, zimo=False))
                     winner.ura_dora += ura_dora
                 if aka_dora > 0:
-                    fangchong.transaction.append(Hule(to=hule['seat'], point=self.RATE*aka_dora, cnt=aka_dora, bonus=Bonus.aka_dora))
+                    fangchong.transaction.append(Hule(to=winner.nickname, point=self.RATE*aka_dora, cnt=aka_dora, bonus=Bonus.aka_dora, zimo=False))
                     winner.aka_dora += aka_dora
 
         recordHule = self.get_recordHule()
@@ -123,7 +124,30 @@ class Jan:
     def _getValue(self, key, items):
         values = [x['Value'] for x in items if 'Key' in x and 'Value' in x and x['Key'] == key]
         return values[0] if values else None
+    
+    def show_result(self):
+        for user in self.users:
+            bonus_sum =(user.ippatsu + user.ura_dora + user.aka_dora) * self.RATE
+            less_sum = 0
+
+            print(f"\n{user.nickname}({user.seat})")
+            print(f"最終得点: {user.point}")
+            print("\n―――ご祝儀―――")
+            print(f"一発: {user.ippatsu}回")
+            print(f"裏ドラ: {user.ura_dora}回")
+            print(f"赤ドラ: {user.aka_dora}回")
+            print(f"合計：{bonus_sum}円")
+            print(f"\n―――振り込み―――")
+            for hule in user.transaction:
+                less_sum += hule.point
+                if hule.zimo:
+                    print(f"{hule.bonus.value} {hule.point}円 →　{hule.to}（ロン） ")
+                else:
+                    print(f"{hule.bonus.value} {hule.point}円 →　{hule.to}（ツモ） ")
+            print(f"合計：{less_sum}円")
+            print(f"\n収支：{bonus_sum - less_sum}円")
         
 
 j = Jan("./test.json")
 j.calc_bonus()
+j.show_result()
