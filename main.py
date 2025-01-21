@@ -1,8 +1,10 @@
 import json
 from dataclasses import dataclass, field
 from enum import Enum
-
-
+from rich import print
+from rich.table import Table
+from rich.console import Console
+from rich.text import Text
 class Bonus(Enum):
     aka_dora = "赤ドラ"
     ura_dora = "裏ドラ"
@@ -16,8 +18,7 @@ class Hule:
     point: int
     zimo: bool
     bonus: Bonus
-
-
+ 
 @dataclass
 class User:
     seat: int
@@ -27,6 +28,9 @@ class User:
     ura_dora: int = 0
     aka_dora: int = 0
     ippatsu: int = 0
+    ura_dora_tumo: int = 0
+    aka_dora_tumo: int = 0
+    ippatsu_tumo: int = 0
     transaction: list[Hule] = field(default_factory=list)
 
 
@@ -97,13 +101,13 @@ class Jan:
                     if not user.seat == hule['seat']:
                         if ippatsu > 0:
                             user.transaction.append(Hule(to=winner.nickname, point=self.RATE*ippatsu, cnt=ippatsu, bonus=Bonus.ippatsu, zimo=True))
-                            winner.ippatsu += 1
+                            winner.ippatsu_tumo += ippatsu
                         if ura_dora > 0:
                             user.transaction.append(Hule(to=winner.nickname, point=self.RATE*ura_dora, cnt=ura_dora, bonus=Bonus.ura_dora, zimo=True))
-                            winner.ura_dora += 1
+                            winner.ura_dora_tumo += ura_dora
                         if aka_dora > 0:
                             user.transaction.append(Hule(to=winner.nickname, point=self.RATE*aka_dora, cnt=aka_dora, bonus=Bonus.aka_dora, zimo=True))
-                            winner.aka_dora += 1
+                            winner.aka_dora_tumo += aka_dora
             else: #ロン
                 if ippatsu > 0:
                     fangchong.transaction.append(Hule(to=winner.nickname, point=self.RATE*ippatsu, cnt=ippatsu, bonus=Bonus.ippatsu, zimo=False))
@@ -127,25 +131,79 @@ class Jan:
     
     def show_result(self):
         for user in self.users:
-            bonus_sum =(user.ippatsu + user.ura_dora + user.aka_dora) * self.RATE
+            bonus_sum = ((user.ippatsu + user.ura_dora + user.aka_dora + (user.ippatsu_tumo + user.ura_dora_tumo + user.aka_dora_tumo) * 3) * self.RATE)
             less_sum = 0
 
-            print(f"\n{user.nickname}({user.seat})")
-            print(f"最終得点: {user.point}")
-            print("\n―――ご祝儀―――")
-            print(f"一発: {user.ippatsu}回")
-            print(f"裏ドラ: {user.ura_dora}回")
-            print(f"赤ドラ: {user.aka_dora}回")
+            print(f"\n{user.nickname}")
+            print(f"・最終得点: {user.point}")
+            """
+            print("――――ご祝儀――――")
+            print(f"一発: {user.ippatsu+user.ippatsu_tumo}回(ツモ:{user.ippatsu_tumo}回)")
+            print(f"裏ドラ: {user.ura_dora+user.ura_dora_tumo}回(ツモ:{user.ura_dora_tumo}回)")
+            print(f"赤ドラ: {user.aka_dora+user.aka_dora_tumo}回(ツモ:{user.aka_dora_tumo}回)")
             print(f"合計：{bonus_sum}円")
-            print(f"\n―――振り込み―――")
+            print(f"――――振り込み――――")
             for hule in user.transaction:
                 less_sum += hule.point
                 if hule.zimo:
                     print(f"{hule.bonus.value} {hule.point}円 →　{hule.to}（ロン） ")
                 else:
                     print(f"{hule.bonus.value} {hule.point}円 →　{hule.to}（ツモ） ")
-            print(f"合計：{less_sum}円")
-            print(f"\n収支：{bonus_sum - less_sum}円")
+            print(f"合計：[red]-{less_sum}円[/]")
+            print(f"――――――収支――――――\n")
+            if bonus_sum - less_sum > 0:
+                print(f"[green]{bonus_sum - less_sum}円[/]")
+            else:
+                print(f"[red]{bonus_sum - less_sum}円[/]")
+            print("――――――――――――――――")
+            """
+
+            console = Console()
+
+            bonus_table = Table(show_header=True, header_style="bold magenta")
+            bonus_table.add_column("赤ドラ")
+            bonus_table.add_column("裏ドラ")
+            bonus_table.add_column("一発")
+            bonus_table.add_column("合計", justify="right")
+
+            bonus_table.add_row(
+                f"{user.aka_dora+user.aka_dora_tumo}回(ツモ:{user.aka_dora_tumo}回)",
+                f"{user.ura_dora+user.ura_dora_tumo}回(ツモ:{user.ura_dora_tumo}回)",
+                f"{user.ippatsu+user.ippatsu_tumo}回(ツモ:{user.ippatsu_tumo}回)",
+                f"[green]+{bonus_sum}円[/]"
+            )
+
+            less_table = Table(show_header=True, header_style="bold magenta")
+            less_table.add_column("振り込み先")
+            less_table.add_column("内容", Text.from_markup("[b]Total", justify="right"))
+            less_table.add_column("金額", justify="right")
+
+            less_sum = 0
+            for hule in user.transaction:
+                less_sum += hule.point
+                desc = hule.bonus.value+"(ツモ)" if hule.zimo else hule.bonus.value+"(ロン)"
+                less_table.add_row(
+                    f'{hule.to}',
+                    desc,
+                    f'{hule.point}円'
+                )
+            less_table.add_row(
+                "", "[red]合計[/]", f"[red]-{less_sum}円[/]",
+            )
+            
+            console.print(bonus_table)
+            console.print(less_table)
+
+            total_table = Table(show_header=True, header_style="bold magenta")
+            result = "red" if bonus_sum - less_sum < 0 else "green"
+            total_table.add_column("収入", no_wrap=True)
+            total_table.add_column("支出", no_wrap=True)
+            total_table.add_column("結果", no_wrap=True, justify="right")
+            total_table.add_row(f"{bonus_sum}円", f"{less_sum}円", f"[{result}]{bonus_sum-less_sum}円[/]")
+            console.print(total_table)
+
+
+
         
 
 j = Jan("./test.json")
