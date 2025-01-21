@@ -59,16 +59,22 @@ class Jan:
         return filtered_actions
  
     def calc_bonus(self):
-        
         def count_ippatsu(hule: dict) -> int:
-            return 1
-
-        def count_ura_dora(hule: dict) -> int:
-            if hule['liqi'] == False:
-                return 0
+            for fans in hule['fans']:
+                if fans['id'] == 30:
+                    return fans['val']
             return 0
-            
+                
         def count_aka_dora(hule: dict) -> int:
+            for fans in hule['fans']:
+                if fans['id'] == 32:
+                    return fans['val']
+            return 0
+                
+        def count_ura_dora(hule: dict) -> int:
+            for fans in hule['fans']:
+                if fans['id'] == 33:
+                    return fans['val']
             return 0
         
         def fangchong_user(delta_scores: list[int]) -> User:
@@ -100,21 +106,19 @@ class Jan:
             else: #ロン
                 if ippatsu > 0:
                     fangchong.transaction.append(Hule(to=hule['seat'], point=self.RATE*ippatsu, cnt=ippatsu, bonus=Bonus.ippatsu))
-                    winner.ippatsu += 1
+                    winner.ippatsu += ippatsu
                 if ura_dora > 0:
                     fangchong.transaction.append(Hule(to=hule['seat'], point=self.RATE*ura_dora, cnt=ura_dora, bonus=Bonus.ura_dora))
-                    winner.ura_dora += 1
+                    winner.ura_dora += ura_dora
                 if aka_dora > 0:
                     fangchong.transaction.append(Hule(to=hule['seat'], point=self.RATE*aka_dora, cnt=aka_dora, bonus=Bonus.aka_dora))
-                    winner.aka_dora += 1
+                    winner.aka_dora += aka_dora
 
         recordHule = self.get_recordHule()
         for record in recordHule:
             for hule in record['result']['data']['hules']:
-                user = None if hule['zimo'] == True else fangchong_user(['result']['data']['delta_scores'])
+                user = None if hule['zimo'] == True else fangchong_user(record['result']['data']['delta_scores'])
                 count(hule, user)
-                
-        
 
     def _getValue(self, key, items):
         values = [x['Value'] for x in items if 'Key' in x and 'Value' in x and x['Key'] == key]
