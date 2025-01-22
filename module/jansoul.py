@@ -4,20 +4,19 @@ from module.data import Bonus, Hule, User
 
 class Jansoul:
     RATE = 500
-    def __init__(self, paifu: dict, samma: bool = False, cpu: int = 0):
+    def __init__(self, paifu: dict, samma: bool = False):
         self.paifu = paifu
-        self.users = self._create_users(cpu=cpu, samma=samma)
+        self.users = self._create_users(samma=samma)
         self._calc_bonus()
 
     def get_users(self):
         return self.users
 
-    def _create_users(self, cpu: int, samma: bool) -> list[User]:
+    def _create_users(self, samma: bool) -> list[User]:
         """牌譜からユーザーを作成する
 
         Parameters
         ----------
-        cpu int: cpuの数
         samma bool: サンマの場合はTrue, ヨンマの場合はFalse
         
         Returns
@@ -31,8 +30,9 @@ class Jansoul:
             user = User(seat=u["seat"], nickname=u["nickname"])
             seats.remove(u['seat'])
             users.append(user)
-        for i in range(cpu):
-            users.append(User(seat=seats[i], nickname=f"CPU{i+1}"))
+        if len(seats) > 0:
+            for i, seat in enumerate(seats):
+                users.append(User(seat=seat, nickname=f"CPU{i+1}"))
 
         point_dict = {result["seat"]: result["part_point_1"] for result in self.paifu["head"]["result"]["players"]}
         for user in users:

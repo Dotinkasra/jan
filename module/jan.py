@@ -2,7 +2,7 @@ import json
 from module.jansoul import Jansoul
 from pathlib import Path
 
-from module.data import User
+from module.data import User, Bonus
 
 from rich import print
 from rich.table import Table
@@ -30,11 +30,11 @@ class Jan:
         self.yiman_tumo_chip = yiman_tumo_chip
         self.yiman_chip = yiman_chip
 
-    def load_paifu_jansoul(self, path: str, cpu: int = 0, samma: bool = False):
+    def load_paifu_jansoul(self, path: str, samma: bool = False):
         paifu_path = Path(path)
         with open(paifu_path, 'r') as paifu:
             paifu_json = json.load(paifu)
-            j = Jansoul(paifu=paifu_json, cpu=cpu, samma=samma)
+            j = Jansoul(paifu=paifu_json, samma=samma)
             users = j.get_users()
         self.users = sorted(users, key=lambda x:x.point, reverse=True)
         self._count()
@@ -58,10 +58,28 @@ class Jan:
             user.score = total_point
             user.chip = self._count_chip(user)
             user.bonus_yen = self._count_bonus(user)
-            user.yen = self._count_yen(user)
+            user.score_yen = self._count_yen(user)
 
             for t in user.transaction:
-                t.yen = t.cnt * self.rate * 10
+                yen = 0
+                match t.bonus:
+                    case Bonus.ippatsu:
+                        yen += self.rate * 10 * t.cnt
+                    case Bonus.ura_dora:
+                        yen += self.rate * 10 * t.cnt
+                    case Bonus.aka_dora:
+                        yen += self.rate * 10 * t.cnt
+                    case Bonus.allstar:
+                        yen += self.rate * 10 * t.cnt * self.allstar_chip
+                    case Bonus.yiman:
+                        if t.zimo:
+                            yen += self.rate * 10 * t.cnt * self.yiman_tumo_chip
+                        else:
+                            yen += self.rate * 10 * t.cnt * self.yiman_chip
+                    case Bonus.tobi:
+                        yen += self.rate * 10 
+                    
+                t.yen = yen
 
     def _count_chip(self, user: User) -> int:
         members_count = 2 if self.samma else 3
@@ -138,11 +156,11 @@ class Jan:
             
 
             result_table = Table(show_header=True, header_style="bold magenta")
-            result = "red" if user.yen + bonus_total < 0 else "green"
+            result = "red" if user.score_yen + bonus_total < 0 else "green"
             result_table.add_column("得点", no_wrap=True)
             result_table.add_column("祝儀", no_wrap=True)
             result_table.add_column("結果", no_wrap=True, justify="right")
-            result_table.add_row(f"{user.yen}円", f"{user.bonus_yen - less_sum}円", f"[{result}]{user.yen + bonus_total}円[/]")
+            result_table.add_row(f"{user.score_yen}円", f"{user.bonus_yen - less_sum}円", f"[{result}]{user.score_yen + bonus_total}円[/]")
             console.print(result_table)
 
             console.print(bonus_table)
