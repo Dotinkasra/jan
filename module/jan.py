@@ -30,15 +30,18 @@ class Jan:
         self.yiman_tumo_chip = yiman_tumo_chip
         self.yiman_chip = yiman_chip
 
-
     def load_paifu_jansoul(self, path: str, cpu: int = 0, samma: bool = False):
         paifu_path = Path(path)
         with open(paifu_path, 'r') as paifu:
             paifu_json = json.load(paifu)
             j = Jansoul(paifu=paifu_json, cpu=cpu, samma=samma)
             users = j.get_users()
-
         self.users = sorted(users, key=lambda x:x.point, reverse=True)
+        self._count()
+        self.show_result()
+        return self.users
+
+    def _count(self):
         for i, user in enumerate(self.users):
             total_point = user.point - self.oka_2
             total_point /= 1000
@@ -53,11 +56,14 @@ class Jan:
                 case 3:
                     total_point -= self.uma_2
             user.score = total_point
-            user.chip = self.count_chip(user)
-        
-        self.show_result()
-    
-    def count_chip(self, user: User) -> int:
+            user.chip = self._count_chip(user)
+            user.bonus_yen = self._count_bonus(user)
+            user.yen = self._count_yen(user)
+
+            for t in user.transaction:
+                t.yen = t.cnt * self.rate * 10
+
+    def _count_chip(self, user: User) -> int:
         members_count = 2 if self.samma else 3
         chip_sum = user.ura_dora + user.aka_dora + user.ippatsu
         chip_sum += user.allstar * self.allstar_chip
@@ -70,14 +76,15 @@ class Jan:
         chip_sum += user.tobi
 
         return chip_sum
-        
-
+    
+    def _count_yen(self, user: User) -> int:
+        return round(user.score * self.rate)
+    
+    def _count_bonus(self, user: User) -> int:
+        return int(user.chip * (self.rate * 10))
+    
     def show_result(self):
         for user in self.users:
-            bonus_sum = int(user.chip * (self.rate * 10))
-            score_sum = round(user.score * self.rate)
- 
-
             print(f"\n{user.nickname}")
             print(f"・最終得点: {user.point} ({user.score})")
 
@@ -99,7 +106,7 @@ class Jan:
                 f"{user.allstar+user.allstar_tumo}回(ツモ:{user.allstar_tumo}回)",
                 f"{user.yiman+user.yiman_tumo}回(ツモ:{user.yiman_tumo}回)",
                 f"{user.tobi}回",
-                f"[green]+{bonus_sum}円[/]"
+                f"[green]+{user.bonus_yen}円[/]"
             )
 
             less_table = Table(show_header=True, header_style="bold magenta")
@@ -109,39 +116,36 @@ class Jan:
 
             less_sum = 0
             for hule in user.transaction:
-                less_sum += hule.cnt * 10 * self.rate
+                less_sum += hule.yen
                 desc = hule.bonus.value+"(ツモ)" if hule.zimo else hule.bonus.value+"(ロン)"
                 less_table.add_row(
                     f'{hule.to}',
                     desc,
-                    f'{self.rate * 10 * hule.cnt}円'
+                    f'{hule.yen}円'
                 )
             less_table.add_row(
                 "", "[red]合計[/]", f"[red]-{less_sum}円[/]",
             )
 
-            bonus_total = bonus_sum - less_sum
+            bonus_total = user.bonus_yen - less_sum
 
             total_table = Table(show_header=True, header_style="bold magenta")
-            result = "red" if bonus_sum - less_sum < 0 else "green"
+            result = "red" if bonus_total < 0 else "green"
             total_table.add_column("収入", no_wrap=True)
             total_table.add_column("支出", no_wrap=True)
             total_table.add_column("結果", no_wrap=True, justify="right")
-            total_table.add_row(f"{bonus_sum}円", f"{less_sum}円", f"[{result}]{bonus_total}円[/]")
+            total_table.add_row(f"{user.bonus_yen}円", f"{less_sum}円", f"[{result}]{bonus_total}円[/]")
             
 
             result_table = Table(show_header=True, header_style="bold magenta")
-            result = "red" if score_sum + bonus_total < 0 else "green"
+            result = "red" if user.yen + bonus_total < 0 else "green"
             result_table.add_column("得点", no_wrap=True)
             result_table.add_column("祝儀", no_wrap=True)
             result_table.add_column("結果", no_wrap=True, justify="right")
-            result_table.add_row(f"{score_sum}円", f"{bonus_sum - less_sum}円", f"[{result}]{score_sum + bonus_total}円[/]")
+            result_table.add_row(f"{user.yen}円", f"{user.bonus_yen - less_sum}円", f"[{result}]{user.yen + bonus_total}円[/]")
             console.print(result_table)
 
             console.print(bonus_table)
             console.print(less_table)
             #console.print(total_table)
-
-
-
 
