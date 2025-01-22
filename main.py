@@ -72,8 +72,13 @@ def main(page: ft.Page):
         return home
     
     def create_table_view():
-        jan = Jan()
-        users = jan.load_paifu_jansoul(parameta['paifu'], parameta['samma'])
+        try:
+            jan = Jan()
+            users = jan.load_paifu_jansoul(parameta['paifu'], parameta['samma'])
+        except Exception as e:
+            print(e)
+            return None
+        
         table_view = ft.View("/結果", [
             ft.AppBar(
                 title=ft.Text("精算表"),
@@ -91,11 +96,16 @@ def main(page: ft.Page):
 
     def route_change(handler):
         troute = ft.TemplateRoute(handler.route)
+        
         page.views.clear()
         if troute.match("/home"):
             page.views.append(home_view())
         elif troute.match("/result"):
-            page.views.append(create_table_view())
+            table_view = create_table_view()
+            if table_view is not None:
+                page.views.append(create_table_view())
+            else:
+                page.go("/home")
         page.update()
 
     paifu_path = ""
