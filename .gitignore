@@ -4,3 +4,4 @@ __pycache__
 .venv
 .tool-versions
 *.json
+*.js
