@@ -10,6 +10,9 @@ def main(page: ft.Page):
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.theme_mode = ft.ThemeMode.LIGHT
 
+    def open_repo(e):
+        page.launch_url('https://github.com/Dotinkasra/jan')
+
     def pick_files_result(e: ft.FilePickerResultEvent):
         parameta["paifu"] = e.files[0].path
 
@@ -37,7 +40,14 @@ def main(page: ft.Page):
         samma_radiobutton = ft.Switch(label="三麻", value=False)
 
         home = ft.View("/home", [
-            ft.AppBar(title=ft.Text("牌譜読み込み"), bgcolor=ft.Colors.BLUE),
+            ft.AppBar(
+                leading=ft.Icon(ft.Icons.PALETTE),
+                leading_width=40,
+                title=ft.Text("ご祝儀計算"),
+                center_title=False,
+                bgcolor=ft.Colors.BLUE,
+                actions=[ft.IconButton(icon = ft.Icons.CODE, on_click=open_repo)]
+            ),
             ft.Column([
                 ft.Container(
                     ft.Column([
@@ -65,8 +75,11 @@ def main(page: ft.Page):
         jan = Jan()
         users = jan.load_paifu_jansoul(parameta['paifu'], parameta['samma'])
         table_view = ft.View("/結果", [
-            ft.AppBar(title=ft.Text("RESULT"),
-                      bgcolor=ft.Colors.BLUE,),
+            ft.AppBar(
+                title=ft.Text("精算表"),
+                bgcolor=ft.Colors.BLUE,
+                actions=[ft.IconButton(icon = ft.Icons.CODE, on_click=open_repo)]
+            ),
         ])
         table_view.scroll =ft.ScrollMode.ALWAYS
         table_view.controls.append(
@@ -101,13 +114,6 @@ def main(page: ft.Page):
     }
     print(samma)
     page.on_route_change = route_change
-    
-    page.appbar = ft.AppBar(
-        leading=ft.Icon(ft.Icons.PALETTE),
-        leading_width=40,
-        title=ft.Text("ご祝儀計算"),
-        center_title=False,
-    )
     page.views.clear()
 
     page.go("/home")
