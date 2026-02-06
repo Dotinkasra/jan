@@ -32,7 +32,7 @@ class Jan:
 
     def load_paifu_jansoul(self, path: str, samma: bool = False):
         paifu_path = Path(path)
-        with open(paifu_path, 'r') as paifu:
+        with open(paifu_path, 'r', encoding='utf-8') as paifu:
             paifu_json = json.load(paifu)
             j = Jansoul(paifu=paifu_json, samma=samma)
             users = j.get_users()
