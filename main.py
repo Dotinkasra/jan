@@ -89,10 +89,9 @@ def main(page: ft.Page):
         )
 
         uma1_dropdown = ft.Dropdown(
-            label="ウマ1（3位 → 2位の支払い",
+            label="ウマ1（3位 → 2位の支払い）",
             options=[
                 ft.dropdown.Option("5"),
-                ft.dropdown.Option("10"),
                 ft.dropdown.Option("10"),
                 ft.dropdown.Option("20"),
             ],
@@ -102,7 +101,7 @@ def main(page: ft.Page):
         )
 
         uma2_dropdown = ft.Dropdown(
-            label="ウマ1（3位 → 2位の支払い",
+            label="ウマ2（4位 → 1位の支払い）",
             options=[
                 ft.dropdown.Option("10"),
                 ft.dropdown.Option("20"),
