@@ -56,7 +56,7 @@ class ResultTablePage(ft.UserControl):
                         ft.DataCell(ft.Text("")),
                         ft.DataCell(ft.Text("")),
                         ft.DataCell(ft.Text("合計")),
-                        ft.DataCell(ft.Text(f"{user.bonus_yen}円")),
+                        ft.DataCell(ft.Text(f"{user.bonus_yen:,}円")),
                     ],
                 ),
             ],
@@ -83,7 +83,7 @@ class ResultTablePage(ft.UserControl):
                             ft.DataCell(
                                 ft.Text(f"{hule.bonus.value}(ツモ)" if hule.zimo else f"{hule.bonus.value}(ロン)")
                             ),
-                            ft.DataCell(ft.Text(f"{hule.yen}円")),
+                            ft.DataCell(ft.Text(f"{hule.yen:,}円")),
                         ],
                     )
                 )
@@ -118,9 +118,11 @@ class ResultTablePage(ft.UserControl):
             rows=[
                 ft.DataRow(
                     cells=[
-                        ft.DataCell(ft.Text(f"{user.score_yen}円")),
-                        ft.DataCell(ft.Text(f"{bonus_total}円")),
-                        ft.DataCell(ft.Text(f"{result}円", color=ft.Colors.RED if result < 0 else ft.Colors.GREEN_900)),
+                        ft.DataCell(ft.Text(f"{user.score_yen:,}円")),
+                        ft.DataCell(ft.Text(f"{bonus_total:,}円")),
+                        ft.DataCell(
+                            ft.Text(f"{result:,}円", color=ft.Colors.RED if result < 0 else ft.Colors.GREEN_900)
+                        ),
                     ],
                 ),
             ],
@@ -134,7 +136,7 @@ class ResultTablePage(ft.UserControl):
                                 [
                                     ft.Text(f"【{user.nickname}】", theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM),
                                     ft.Text(
-                                        str(user.point),
+                                        f"{user.point:,}",
                                         theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM,
                                     ),
                                     ft.Text(

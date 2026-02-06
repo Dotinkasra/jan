@@ -69,6 +69,67 @@ def main(page: ft.Page):
 
         samma_radiobutton = ft.Switch(label="三麻", value=False)
         do_btn = ft.ElevatedButton("実行する", on_click=lambda x: btn())
+
+        rate_dropdown = ft.Dropdown(
+            label="レート",
+            options=[
+                ft.dropdown.Option("10"),
+                ft.dropdown.Option("20"),
+                ft.dropdown.Option("30"),
+                ft.dropdown.Option("50"),
+                ft.dropdown.Option("100"),
+                ft.dropdown.Option("200"),
+                ft.dropdown.Option("300"),
+                ft.dropdown.Option("500"),
+                ft.dropdown.Option("1000"),
+            ],
+            value="50",
+            width=100,
+            on_change=lambda e: parameta.update({"rate": int(e.control.value)}),
+        )
+
+        uma1_dropdown = ft.Dropdown(
+            label="ウマ1（3位 → 2位の支払い",
+            options=[
+                ft.dropdown.Option("5"),
+                ft.dropdown.Option("10"),
+                ft.dropdown.Option("10"),
+                ft.dropdown.Option("20"),
+            ],
+            value="10",
+            width=200,
+            on_change=lambda e: parameta.update({"uma_1": int(e.control.value)}),
+        )
+
+        uma2_dropdown = ft.Dropdown(
+            label="ウマ1（3位 → 2位の支払い",
+            options=[
+                ft.dropdown.Option("10"),
+                ft.dropdown.Option("20"),
+                ft.dropdown.Option("30"),
+            ],
+            value="30",
+            width=200,
+            on_change=lambda e: parameta.update({"uma_2": int(e.control.value)}),
+        )
+
+        oka_1_inputbox = ft.TextField(
+            label="初期点",
+            value="25000",
+            width=100,
+            text_align=ft.TextAlign.LEFT,
+            input_filter=ft.InputFilter(allow=True, regex_string=r"^[0-9]*$", replacement_string=""),
+            on_change=lambda e: parameta.update({"oka_1": int(e.control.value)}),
+        )
+
+        oka_2_inputbox = ft.TextField(
+            label="オカ",
+            value="30000",
+            width=100,
+            text_align=ft.TextAlign.LEFT,
+            input_filter=ft.InputFilter(allow=True, regex_string=r"^[0-9]*$", replacement_string=""),
+            on_change=lambda e: parameta.update({"oka_2": int(e.control.value)}),
+        )
         home = ft.View(
             "/home",
             [
@@ -99,6 +160,19 @@ def main(page: ft.Page):
                                     ),
                                     ft.Row(
                                         [
+                                            oka_1_inputbox,
+                                            oka_2_inputbox,
+                                        ]
+                                    ),
+                                    ft.Row(
+                                        [
+                                            rate_dropdown,
+                                            uma1_dropdown,
+                                            uma2_dropdown,
+                                        ]
+                                    ),
+                                    ft.Row(
+                                        [
                                             paifu_path,
                                         ]
                                     ),
@@ -114,7 +188,13 @@ def main(page: ft.Page):
 
     def create_table_view():
         try:
-            jan = Jan()
+            jan = Jan(
+                rate=parameta["rate"],
+                uma_1=parameta["uma_1"],
+                uma_2=parameta["uma_2"],
+                oka_1=parameta["oka_1"],
+                oka_2=parameta["oka_2"],
+            )
             users = jan.load_paifu_jansoul(parameta["paifu"], parameta["samma"])
         except Exception as e:
             print(e)
@@ -164,7 +244,16 @@ def main(page: ft.Page):
     oka_1 = 25000
     oka_2 = 30000
     samma = False
-    parameta = {"paifu": paifu_path, "uma_1": uma_1, "uma_2": uma_2, "oka_1": oka_1, "oka_2": oka_2, "samma": samma}
+    rate = 50
+    parameta = {
+        "paifu": paifu_path,
+        "rate": rate,
+        "uma_1": uma_1,
+        "uma_2": uma_2,
+        "oka_1": oka_1,
+        "oka_2": oka_2,
+        "samma": samma,
+    }
     print(samma)
     page.on_route_change = route_change
     page.views.clear()
