@@ -195,4 +195,3 @@ class Jansoul:
                 user = None if hule["zimo"] == True else fangchong_user(record["result"]["data"]["delta_scores"])
                 tobi = tobi_users(record["result"]["data"]["scores"])
                 count(hule, user, tobi)
-                count(hule, user, tobi)
