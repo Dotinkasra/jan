@@ -3,3 +3,15 @@ __pycache__
 .vscode
 .venv
 .tool-versions
+venv
+*.spec
+*.toc
+*.zip
+*.html
+*.pyc
+*.pyz
+*.exe
+*.pkg
+*.app
+*.DS_Store
+*.Spotlight
