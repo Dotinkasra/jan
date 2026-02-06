@@ -1,6 +1,7 @@
 import flet as ft
 
-from module.data import User, Hule, Bonus
+from module.data import Bonus, Hule, User
+
 
 class ResultTablePage(ft.UserControl):
 
@@ -9,7 +10,8 @@ class ResultTablePage(ft.UserControl):
         self.user = user
 
     def did_mount(self):
-        self.page.update()
+        if self.page:
+            self.page.update()
 
     def build(self):
         user = self.user
@@ -19,22 +21,42 @@ class ResultTablePage(ft.UserControl):
             horizontal_lines=ft.BorderSide(1, "black"),
             border=ft.border.all(2, "black"),
             columns=[
-                ft.DataColumn(ft.Text("赤ドラ")),
-                ft.DataColumn(ft.Text("裏ドラ")),
+                ft.DataColumn(ft.Text("赤")),
+                ft.DataColumn(ft.Text("裏")),
                 ft.DataColumn(ft.Text("一発")),
                 ft.DataColumn(ft.Text("オールスター")),
                 ft.DataColumn(ft.Text("役満")),
-                ft.DataColumn(ft.Text("飛ばし")),
+                ft.DataColumn(ft.Text("飛")),
             ],
             rows=[
                 ft.DataRow(
                     cells=[
-                        ft.DataCell(ft.Text(f"{user.aka_dora}（{user.aka_dora_tumo}）回")),
-                        ft.DataCell(ft.Text(f"{user.ura_dora}（{user.ura_dora_tumo}）回")),
-                        ft.DataCell(ft.Text(f"{user.ippatsu}（{user.ippatsu_tumo}）回")),
-                        ft.DataCell(ft.Text(f"{user.allstar}（{user.allstar_tumo}）回")),
-                        ft.DataCell(ft.Text(f"{user.yiman}（{user.yiman}）回")), 
+                        ft.DataCell(ft.Text(f"{user.aka_dora}回")),
+                        ft.DataCell(ft.Text(f"{user.ura_dora}回")),
+                        ft.DataCell(ft.Text(f"{user.ippatsu}回")),
+                        ft.DataCell(ft.Text(f"{user.allstar}回")),
+                        ft.DataCell(ft.Text(f"{user.yiman}回")),
                         ft.DataCell(ft.Text(f"{user.tobi}回")),
+                    ],
+                ),
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text(f"{user.aka_dora_tumo}回")),
+                        ft.DataCell(ft.Text(f"{user.ura_dora_tumo}回")),
+                        ft.DataCell(ft.Text(f"{user.ippatsu_tumo}回")),
+                        ft.DataCell(ft.Text(f"{user.allstar_tumo}回")),
+                        ft.DataCell(ft.Text(f"{user.yiman_tumo}回")),
+                        ft.DataCell(ft.Text(f"-")),
+                    ],
+                ),
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text("")),
+                        ft.DataCell(ft.Text("")),
+                        ft.DataCell(ft.Text("")),
+                        ft.DataCell(ft.Text("")),
+                        ft.DataCell(ft.Text("合計")),
+                        ft.DataCell(ft.Text(f"{user.bonus_yen:,}円")),
                     ],
                 ),
             ],
@@ -42,17 +64,30 @@ class ResultTablePage(ft.UserControl):
 
         less_rows = []
         less_total = 0
-        for hule in user.transaction:
+        if len(user.transaction) <= 0:
             less_rows.append(
                 ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text("なし")),
+                        ft.DataCell(ft.Text("")),
+                        ft.DataCell(ft.Text("0円")),
+                    ]
+                )
+            )
+        else:
+            for hule in user.transaction:
+                less_rows.append(
+                    ft.DataRow(
                         cells=[
                             ft.DataCell(ft.Text(hule.to)),
-                            ft.DataCell(ft.Text(f"{hule.bonus.value}(ツモ)" if hule.zimo else f"{hule.bonus.value}(ロン)")),
-                            ft.DataCell(ft.Text(f"{hule.yen}円")),
+                            ft.DataCell(
+                                ft.Text(f"{hule.bonus.value}(ツモ)" if hule.zimo else f"{hule.bonus.value}(ロン)")
+                            ),
+                            ft.DataCell(ft.Text(f"{hule.yen:,}円")),
                         ],
                     )
-            )
-            less_total += hule.yen
+                )
+                less_total += hule.yen
 
         self.less_table = ft.DataTable(
             heading_row_color=ft.Colors.BLACK12,
@@ -64,9 +99,9 @@ class ResultTablePage(ft.UserControl):
                 ft.DataColumn(ft.Text("内容")),
                 ft.DataColumn(ft.Text("金額")),
             ],
-            rows=less_rows
+            rows=less_rows,
         )
-        
+
         bonus_total = user.bonus_yen - less_total
         result = user.score_yen + bonus_total
 
@@ -76,46 +111,80 @@ class ResultTablePage(ft.UserControl):
             horizontal_lines=ft.BorderSide(1, "black"),
             border=ft.border.all(2, "black"),
             columns=[
-                ft.DataColumn(ft.Text("収入")),
-                ft.DataColumn(ft.Text("支出")),
+                ft.DataColumn(ft.Text("得点")),
+                ft.DataColumn(ft.Text("祝儀")),
                 ft.DataColumn(ft.Text("結果")),
             ],
             rows=[
                 ft.DataRow(
                     cells=[
-                        ft.DataCell(ft.Text(f"{user.score_yen}円")),
-                        ft.DataCell(ft.Text(f"{bonus_total}円")),
-                        ft.DataCell(ft.Text(f"{result}円", color = ft.Colors.RED if result < 0 else ft.Colors.GREEN_900 )),
+                        ft.DataCell(ft.Text(f"{user.score_yen:,}円")),
+                        ft.DataCell(ft.Text(f"{bonus_total:,}円")),
+                        ft.DataCell(
+                            ft.Text(f"{result:,}円", color=ft.Colors.RED if result < 0 else ft.Colors.GREEN_900)
+                        ),
                     ],
                 ),
             ],
         )
-#        return [bonus, user_less_table, user_result_table]
-        container = ft.Column([
-            ft.Container(
-                ft.Column([
-                    ft.Row([
-                        ft.Text(f"【{user.nickname}】", theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM),
-                        ft.Text(user.point, theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM,),
-                        ft.Text(f"({user.score})", theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM, color = ft.Colors.RED if user.score < 0 else ft.Colors.GREEN)
-                        ], alignment=ft.MainAxisAlignment.START
-                        
+        container = ft.Column(
+            [
+                ft.Container(
+                    ft.Column(
+                        [
+                            ft.Row(
+                                [
+                                    ft.Text(f"【{user.nickname}】", theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM),
+                                    ft.Text(
+                                        f"{user.point:,}",
+                                        theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM,
+                                    ),
+                                    ft.Text(
+                                        f"({user.score})",
+                                        theme_style=ft.TextThemeStyle.HEADLINE_MEDIUM,
+                                        color=ft.Colors.RED if user.score < 0 else ft.Colors.GREEN,
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.START,
+                            ),
+                            ft.Row(
+                                [
+                                    self.result_table,
+                                ],
+                                alignment=ft.MainAxisAlignment.START,
+                            ),
+                            ft.Row(
+                                [
+                                    ft.Text(
+                                        f"祝儀明細（上段：ロン、下段：ツモ）", theme_style=ft.TextThemeStyle.BODY_LARGE
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.START,
+                            ),
+                            ft.Row(
+                                [
+                                    self.bonus_table,
+                                ],
+                                alignment=ft.MainAxisAlignment.START,
+                            ),
+                            ft.Row(
+                                [
+                                    ft.Text(f"支払い明細", theme_style=ft.TextThemeStyle.BODY_LARGE),
+                                ],
+                                alignment=ft.MainAxisAlignment.START,
+                            ),
+                            ft.Row(
+                                [
+                                    self.less_table,
+                                ],
+                                alignment=ft.MainAxisAlignment.START,
+                            ),
+                        ]
                     ),
-                    ft.Row([
-                        self.result_table,
-                    ], alignment=ft.MainAxisAlignment.START),
-                    ft.Row([
-                        self.bonus_table,
-                    ], alignment=ft.MainAxisAlignment.START),
-                    ft.Row([
-                        self.less_table,
-                    ], alignment=ft.MainAxisAlignment.START),
-                    
-                    
-                ]),
-                margin=10,
-                padding=10,
-            )
-        ])
-        
+                    margin=10,
+                    padding=10,
+                )
+            ]
+        )
+
         return container

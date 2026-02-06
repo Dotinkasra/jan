@@ -3,6 +3,7 @@ __pycache__
 .vscode
 .venv
 .tool-versions
+<<<<<<< HEAD
 venv
 *.spec
 *.toc
@@ -15,3 +16,7 @@ venv
 *.app
 *.DS_Store
 *.Spotlight
+=======
+*.json
+*.js
+>>>>>>> fd599576315324e1033ecab5a7f4ba41a4d9e363
