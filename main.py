@@ -88,6 +88,15 @@ def main(page: ft.Page):
             on_change=lambda e: parameta.update({"rate": int(e.control.value)}),
         )
 
+        chip_inputbox = ft.TextField(
+            label="チップ金額",
+            value="500",
+            width=100,
+            text_align=ft.TextAlign.LEFT,
+            input_filter=ft.InputFilter(allow=True, regex_string=r"^[0-9]*$", replacement_string=""),
+            on_change=lambda e: parameta.update({"chip": int(e.control.value)}),
+        )
+
         uma1_dropdown = ft.Dropdown(
             label="ウマ1（3位 → 2位の支払い）",
             options=[
@@ -166,6 +175,11 @@ def main(page: ft.Page):
                                     ft.Row(
                                         [
                                             rate_dropdown,
+                                            chip_inputbox,
+                                        ]
+                                    ),
+                                    ft.Row(
+                                        [
                                             uma1_dropdown,
                                             uma2_dropdown,
                                         ]
@@ -189,6 +203,7 @@ def main(page: ft.Page):
         try:
             jan = Jan(
                 rate=parameta["rate"],
+                chip=parameta["chip"],
                 uma_1=parameta["uma_1"],
                 uma_2=parameta["uma_2"],
                 oka_1=parameta["oka_1"],
@@ -244,9 +259,11 @@ def main(page: ft.Page):
     oka_2 = 30000
     samma = False
     rate = 50
+    chip = 500
     parameta = {
         "paifu": paifu_path,
         "rate": rate,
+        "chip": chip,
         "uma_1": uma_1,
         "uma_2": uma_2,
         "oka_1": oka_1,
