@@ -1,14 +1,43 @@
 from module.jan import Jan
 from module.data import User, Bonus, Hule
-
+import pyscreenshot as ImageGrab
 from components.result_table import ResultTablePage
 import flet as ft
+from flet import Image
+import time
+
+def take_screenshot (e):
+    page = e.control.page
+    y = page.window_top
+    x = page.window_left
+    w = page.window_width
+    h = page.window_height
+
+    # note: in two monitor setup, this only works if flet window in first monitor (0,0)
+    screen = ImageGrab.grab(
+        bbox=( x, y, w+x,h+y )
+    )
+
+    # Flet caches local images, so ugly cache buster needed
+    # this code needs improvement!
+
+    t = str(time.time())
+    loadImageCacheBuster = f"screenshots/{t.split('.')[0]}.png"
+    screen.save(loadImageCacheBuster)
+    loadImage = Image(src=loadImageCacheBuster, fit="contain")
+
+    # load /replace saved screenshot image
+    if len(page.imageContainer.controls) >= 1:
+        page.imageContainer.clean()
+    page.imageContainer.controls.append (loadImage)
+    page.update()
 
 def main(page: ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.title = "ご祝儀計算キット"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.theme_mode = ft.ThemeMode.LIGHT
+
 
     def open_repo(e):
         page.launch_url('https://github.com/Dotinkasra/jan')
@@ -31,14 +60,12 @@ def main(page: ft.Page):
         pick_files_dialog = ft.FilePicker(on_result=pick_files_result_wrapper)
         page.overlay.append(pick_files_dialog)
         paifu_path = ft.Text()
-
-        do_btn = ft.ElevatedButton(
-            "実行する",
-            on_click=lambda x: btn()
-        )
-
+  
         samma_radiobutton = ft.Switch(label="三麻", value=False)
-
+        do_btn = ft.ElevatedButton(
+                "実行する",
+                on_click=lambda x: btn()
+            )
         home = ft.View("/home", [
             ft.AppBar(
                 leading=ft.Icon(ft.Icons.PALETTE),
@@ -88,8 +115,14 @@ def main(page: ft.Page):
         ])
         table_view.scroll =ft.ScrollMode.ALWAYS
         table_view.controls.append(
-            ft.ElevatedButton("牌譜読み込みに戻る", on_click=lambda _: page.go("/home"))
+            ft.Row(
+                [
+                    ft.ElevatedButton("牌譜読み込みに戻る", on_click=lambda _: page.go("/home")),
+                    ft.ElevatedButton("画像を保存", on_click = take_screenshot),
+                ]
+            )
         )
+        
         for user in users:
             table_view.controls.append(ResultTablePage(user=user))
         return table_view
