@@ -15,48 +15,112 @@ class ResultTablePage(ft.UserControl):
 
     def build(self):
         user = self.user
+        tsumo_target_count = user.tsumo_target_count
+
+        ron_chip_aka = user.aka_dora
+        ron_chip_ura = user.ura_dora
+        ron_chip_ippatsu = user.ippatsu
+        ron_chip_allstar = user.allstar * user.allstar_chip_rate
+        ron_chip_yiman = user.yiman * user.yiman_chip_rate
+        ron_chip_tobi = user.tobi_ron
+
+        tumo_chip_aka = user.aka_dora_tumo * tsumo_target_count
+        tumo_chip_ura = user.ura_dora_tumo * tsumo_target_count
+        tumo_chip_ippatsu = user.ippatsu_tumo * tsumo_target_count
+        tumo_chip_allstar = user.allstar_tumo * user.allstar_chip_rate * tsumo_target_count
+        tumo_chip_yiman = user.yiman_tumo * user.yiman_tumo_chip_rate * tsumo_target_count
+
+        chip_total_aka = ron_chip_aka + tumo_chip_aka
+        chip_total_ura = ron_chip_ura + tumo_chip_ura
+        chip_total_ippatsu = ron_chip_ippatsu + tumo_chip_ippatsu
+        chip_total_allstar = ron_chip_allstar + tumo_chip_allstar
+        chip_total_yiman = ron_chip_yiman + tumo_chip_yiman
+        tumo_chip_tobi = user.tobi_tumo
+        chip_total_tobi = ron_chip_tobi + tumo_chip_tobi
+        chip_total = (
+            chip_total_aka
+            + chip_total_ura
+            + chip_total_ippatsu
+            + chip_total_allstar
+            + chip_total_yiman
+            + chip_total_tobi
+        )
+        chip_total_yen = chip_total * user.chip_yen_unit
+
         self.bonus_table = ft.DataTable(
             heading_row_color=ft.Colors.BLACK12,
             vertical_lines=ft.BorderSide(1, "black"),
             horizontal_lines=ft.BorderSide(1, "black"),
             border=ft.border.all(2, "black"),
             columns=[
-                ft.DataColumn(ft.Text("赤")),
-                ft.DataColumn(ft.Text("裏")),
-                ft.DataColumn(ft.Text("一発")),
-                ft.DataColumn(ft.Text("オールスター")),
-                ft.DataColumn(ft.Text("役満")),
-                ft.DataColumn(ft.Text("飛")),
+                ft.DataColumn(ft.Text("種類／内容")),
+                ft.DataColumn(ft.Text("ロン")),
+                ft.DataColumn(ft.Text("ツモ")),
+                ft.DataColumn(ft.Text("チップ枚数")),
             ],
             rows=[
                 ft.DataRow(
                     cells=[
+                        ft.DataCell(ft.Text("赤ドラ")),
                         ft.DataCell(ft.Text(f"{user.aka_dora}回")),
-                        ft.DataCell(ft.Text(f"{user.ura_dora}回")),
-                        ft.DataCell(ft.Text(f"{user.ippatsu}回")),
-                        ft.DataCell(ft.Text(f"{user.allstar}回")),
-                        ft.DataCell(ft.Text(f"{user.yiman}回")),
-                        ft.DataCell(ft.Text(f"{user.tobi}回")),
-                    ],
-                ),
-                ft.DataRow(
-                    cells=[
                         ft.DataCell(ft.Text(f"{user.aka_dora_tumo}回")),
-                        ft.DataCell(ft.Text(f"{user.ura_dora_tumo}回")),
-                        ft.DataCell(ft.Text(f"{user.ippatsu_tumo}回")),
-                        ft.DataCell(ft.Text(f"{user.allstar_tumo}回")),
-                        ft.DataCell(ft.Text(f"{user.yiman_tumo}回")),
-                        ft.DataCell(ft.Text(f"-")),
+                        ft.DataCell(ft.Text(f"{chip_total_aka}枚")),
                     ],
                 ),
                 ft.DataRow(
                     cells=[
+                        ft.DataCell(ft.Text("裏ドラ")),
+                        ft.DataCell(ft.Text(f"{user.ura_dora}回")),
+                        ft.DataCell(ft.Text(f"{user.ura_dora_tumo}回")),
+                        ft.DataCell(ft.Text(f"{chip_total_ura}枚")),
+                    ],
+                ),
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text("一発")),
+                        ft.DataCell(ft.Text(f"{user.ippatsu}回")),
+                        ft.DataCell(ft.Text(f"{user.ippatsu_tumo}回")),
+                        ft.DataCell(ft.Text(f"{chip_total_ippatsu}枚")),
+                    ],
+                ),
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text("オールスター")),
+                        ft.DataCell(ft.Text(f"{user.allstar}回")),
+                        ft.DataCell(ft.Text(f"{user.allstar_tumo}回")),
+                        ft.DataCell(ft.Text(f"{chip_total_allstar}枚")),
+                    ],
+                ),
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text("役満")),
+                        ft.DataCell(ft.Text(f"{user.yiman}回")),
+                        ft.DataCell(ft.Text(f"{user.yiman_tumo}回")),
+                        ft.DataCell(ft.Text(f"{chip_total_yiman}枚")),
+                    ],
+                ),
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text("飛ばし")),
+                        ft.DataCell(ft.Text(f"{user.tobi_ron}回")),
+                        ft.DataCell(ft.Text(f"{user.tobi_tumo}回")),
+                        ft.DataCell(ft.Text(f"{chip_total_tobi}枚")),
+                    ],
+                ),
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text("合計チップ枚数")),
                         ft.DataCell(ft.Text("")),
                         ft.DataCell(ft.Text("")),
+                        ft.DataCell(ft.Text(f"{chip_total}枚")),
+                    ],
+                ),
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text("合計金額")),
                         ft.DataCell(ft.Text("")),
                         ft.DataCell(ft.Text("")),
-                        ft.DataCell(ft.Text("合計")),
-                        ft.DataCell(ft.Text(f"{user.bonus_yen:,}円")),
+                        ft.DataCell(ft.Text(f"{chip_total_yen:,}円")),
                     ],
                 ),
             ],
@@ -71,12 +135,14 @@ class ResultTablePage(ft.UserControl):
                     cells=[
                         ft.DataCell(ft.Text("なし")),
                         ft.DataCell(ft.Text("")),
+                        ft.DataCell(ft.Text("0枚")),
                         ft.DataCell(ft.Text("0円")),
                     ]
                 )
             )
         else:
             for hule in user.transaction:
+                chip_cnt = int(hule.yen / user.chip_yen_unit) if user.chip_yen_unit > 0 else 0
                 less_rows.append(
                     ft.DataRow(
                         cells=[
@@ -84,6 +150,7 @@ class ResultTablePage(ft.UserControl):
                             ft.DataCell(
                                 ft.Text(f"{hule.bonus.value}(ツモ)" if hule.zimo else f"{hule.bonus.value}(ロン)")
                             ),
+                            ft.DataCell(ft.Text(f"{chip_cnt}枚")),
                             ft.DataCell(ft.Text(f"{hule.yen:,}円")),
                         ],
                     )
@@ -99,43 +166,45 @@ class ResultTablePage(ft.UserControl):
             columns=[
                 ft.DataColumn(ft.Text("振込先")),
                 ft.DataColumn(ft.Text("内容")),
+                ft.DataColumn(ft.Text("チップ枚数")),
                 ft.DataColumn(ft.Text("金額")),
             ],
             rows=less_rows,
         )
 
-        score_summary_map = {}
-        for settlement in user.score_transaction:
-            score_summary_map[settlement.to] = score_summary_map.get(settlement.to, 0) + settlement.yen
-
-        all_payers = set(less_summary_map.keys()) | set(score_summary_map.keys())
         less_summary_rows = []
-        if len(all_payers) <= 0:
+        if len(user.opponent_summaries) <= 0:
             less_summary_rows.append(
                 ft.DataRow(
                     cells=[
                         ft.DataCell(ft.Text("なし")),
                         ft.DataCell(ft.Text("0円")),
-                        ft.DataCell(ft.Text("0円")),
+                        ft.DataCell(ft.Text("0枚")),
+                        ft.DataCell(ft.Text("0枚")),
                         ft.DataCell(ft.Text("0円")),
                     ]
                 )
             )
         else:
-            merged = []
-            for to in all_payers:
-                score_total = score_summary_map.get(to, 0)
-                bonus_total = less_summary_map.get(to, 0)
-                merged.append((to, score_total, bonus_total, score_total + bonus_total))
-
-            for to, score_total, bonus_total, total in sorted(merged, key=lambda x: x[3], reverse=True):
+            for summary in user.opponent_summaries:
                 less_summary_rows.append(
                     ft.DataRow(
                         cells=[
-                            ft.DataCell(ft.Text(to)),
-                            ft.DataCell(ft.Text(f"{score_total:,}円")),
-                            ft.DataCell(ft.Text(f"{bonus_total:,}円")),
-                            ft.DataCell(ft.Text(f"{total:,}円")),
+                            ft.DataCell(ft.Text(summary.to)),
+                            ft.DataCell(
+                                ft.Text(
+                                    f"{summary.score_yen:+,}円",
+                                    color=ft.Colors.RED if summary.score_yen < 0 else ft.Colors.GREEN_900,
+                                )
+                            ),
+                            ft.DataCell(ft.Text(f"{summary.receive_chip:,}枚")),
+                            ft.DataCell(ft.Text(f"{summary.pay_chip:,}枚")),
+                            ft.DataCell(
+                                ft.Text(
+                                    f"{summary.total_yen:+,}円",
+                                    color=ft.Colors.RED if summary.total_yen < 0 else ft.Colors.GREEN_900,
+                                )
+                            ),
                         ],
                     )
                 )
@@ -146,9 +215,10 @@ class ResultTablePage(ft.UserControl):
             horizontal_lines=ft.BorderSide(1, "black"),
             border=ft.border.all(2, "black"),
             columns=[
-                ft.DataColumn(ft.Text("振込先")),
+                ft.DataColumn(ft.Text("相手")),
                 ft.DataColumn(ft.Text("得点精算")),
-                ft.DataColumn(ft.Text("祝儀")),
+                ft.DataColumn(ft.Text("受け取りチップ")),
+                ft.DataColumn(ft.Text("支払いチップ")),
                 ft.DataColumn(ft.Text("合計金額")),
             ],
             rows=less_summary_rows,
@@ -215,7 +285,7 @@ class ResultTablePage(ft.UserControl):
                             ft.Row(
                                 [
                                     ft.Text(
-                                        f"祝儀明細（上段：ロン、下段：ツモ）", theme_style=ft.TextThemeStyle.BODY_LARGE
+                                        f"祝儀明細", theme_style=ft.TextThemeStyle.BODY_LARGE
                                     ),
                                 ],
                                 alignment=ft.MainAxisAlignment.START,

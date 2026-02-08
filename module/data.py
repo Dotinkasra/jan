@@ -26,6 +26,15 @@ class Settlement:
 
 
 @dataclass
+class OpponentSummary:
+    to: str  # 相手名
+    score_yen: int = 0  # 得点精算（受け取り:+ / 支払い:-）
+    receive_chip: int = 0  # 受け取りチップ枚数
+    pay_chip: int = 0  # 支払いチップ枚数
+    total_yen: int = 0  # 総合（円）
+
+
+@dataclass
 class User:
     seat: int #着順
     nickname: str #名前
@@ -34,6 +43,8 @@ class User:
     score_yen: int = 0 #総合金額
     bonus_yen: int = 0 #獲得した祝儀の金額
     tobi: int = 0 #飛ばした回数
+    tobi_ron: int = 0
+    tobi_tumo: int = 0
     ura_dora: int = 0 
     aka_dora: int = 0
     ippatsu: int = 0
@@ -45,8 +56,16 @@ class User:
     allstar_tumo: int = 0
     yiman_tumo: int = 0
     chip: int = 0
+    chip_yen_unit: int = 500
+    tsumo_target_count: int = 3
+    allstar_chip_rate: int = 5
+    yiman_tumo_chip_rate: int = 5
+    yiman_chip_rate: int = 10
     transaction: list[Hule] = field(default_factory=list)
     score_transaction: list[Settlement] = field(default_factory=list)
+    bonus_summary_transaction: list[Settlement] = field(default_factory=list)
+    score_summary_transaction: list[Settlement] = field(default_factory=list)
+    opponent_summaries: list[OpponentSummary] = field(default_factory=list)
 
     def myless(self) -> int:
         total = 0

@@ -132,7 +132,8 @@ class Jansoul:
             if winner is None:
                 return
 
-            if ippatsu + ura_dora + aka_dora + yiman + allstar == 0:
+            # 祝儀役がなくてもトビが発生しているケースは処理を継続する
+            if ippatsu + ura_dora + aka_dora + yiman + allstar == 0 and tobi is None:
                 return
 
             if fangchong is None:  # ツモ
@@ -185,9 +186,15 @@ class Jansoul:
                     fangchong.transaction.append(Hule(to=winner.nickname, cnt=allstar, bonus=Bonus.allstar, zimo=False))
 
             if tobi is not None:
-                winner.tobi += len(tobi)
-                for user in tobi:  # トビ
-                    user.transaction.append(Hule(to=winner.nickname, cnt=1, bonus=Bonus.tobi, zimo=fangchong is None))
+                if fangchong is None:  # ツモ: 飛んだプレイヤーから1枚ずつ
+                    winner.tobi += len(tobi)
+                    winner.tobi_tumo += len(tobi)
+                    for user in tobi:
+                        user.transaction.append(Hule(to=winner.nickname, cnt=1, bonus=Bonus.tobi, zimo=True))
+                else:  # ロン: ロン対象者から1枚
+                    winner.tobi += 1
+                    winner.tobi_ron += 1
+                    fangchong.transaction.append(Hule(to=winner.nickname, cnt=1, bonus=Bonus.tobi, zimo=False))
 
         recordHule = self._get_recordHule()
         for record in recordHule:
