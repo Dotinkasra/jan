@@ -137,9 +137,11 @@ class Jan:
             less_table.add_column("内容", Text.from_markup("[b]Total", justify="right"))
             less_table.add_column("金額", justify="right")
 
+            less_summary = {}
             less_sum = 0
             for hule in user.transaction:
                 less_sum += hule.yen
+                less_summary[hule.to] = less_summary.get(hule.to, 0) + hule.yen
                 desc = hule.bonus.value + "(ツモ)" if hule.zimo else hule.bonus.value + "(ロン)"
                 less_table.add_row(f"{hule.to}", desc, f"{hule.yen}円")
             less_table.add_row(
@@ -147,6 +149,15 @@ class Jan:
                 "[red]合計[/]",
                 f"[red]-{less_sum}円[/]",
             )
+
+            less_summary_table = Table(show_header=True, header_style="bold magenta")
+            less_summary_table.add_column("振り込み先")
+            less_summary_table.add_column("合計金額", justify="right")
+            if len(less_summary) == 0:
+                less_summary_table.add_row("なし", "0円")
+            else:
+                for to, total in sorted(less_summary.items(), key=lambda x: x[1], reverse=True):
+                    less_summary_table.add_row(to, f"{total}円")
 
             bonus_total = user.bonus_yen - less_sum
 
@@ -171,4 +182,5 @@ class Jan:
 
             console.print(bonus_table)
             console.print(less_table)
+            console.print(less_summary_table)
             # console.print(total_table)

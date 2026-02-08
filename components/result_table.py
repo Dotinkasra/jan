@@ -63,6 +63,7 @@ class ResultTablePage(ft.UserControl):
         )
 
         less_rows = []
+        less_summary_map = {}
         less_total = 0
         if len(user.transaction) <= 0:
             less_rows.append(
@@ -88,6 +89,7 @@ class ResultTablePage(ft.UserControl):
                     )
                 )
                 less_total += hule.yen
+                less_summary_map[hule.to] = less_summary_map.get(hule.to, 0) + hule.yen
 
         self.less_table = ft.DataTable(
             heading_row_color=ft.Colors.BLACK12,
@@ -100,6 +102,39 @@ class ResultTablePage(ft.UserControl):
                 ft.DataColumn(ft.Text("金額")),
             ],
             rows=less_rows,
+        )
+
+        less_summary_rows = []
+        if len(less_summary_map) <= 0:
+            less_summary_rows.append(
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text("なし")),
+                        ft.DataCell(ft.Text("0円")),
+                    ]
+                )
+            )
+        else:
+            for to, total in sorted(less_summary_map.items(), key=lambda x: x[1], reverse=True):
+                less_summary_rows.append(
+                    ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text(to)),
+                            ft.DataCell(ft.Text(f"{total:,}円")),
+                        ],
+                    )
+                )
+
+        self.less_summary_table = ft.DataTable(
+            heading_row_color=ft.Colors.BLACK12,
+            vertical_lines=ft.BorderSide(1, "black"),
+            horizontal_lines=ft.BorderSide(1, "black"),
+            border=ft.border.all(2, "black"),
+            columns=[
+                ft.DataColumn(ft.Text("振込先")),
+                ft.DataColumn(ft.Text("合計金額")),
+            ],
+            rows=less_summary_rows,
         )
 
         bonus_total = user.bonus_yen - less_total
@@ -176,6 +211,18 @@ class ResultTablePage(ft.UserControl):
                             ft.Row(
                                 [
                                     self.less_table,
+                                ],
+                                alignment=ft.MainAxisAlignment.START,
+                            ),
+                            ft.Row(
+                                [
+                                    ft.Text(f"支払い集計（振込先別）", theme_style=ft.TextThemeStyle.BODY_LARGE),
+                                ],
+                                alignment=ft.MainAxisAlignment.START,
+                            ),
+                            ft.Row(
+                                [
+                                    self.less_summary_table,
                                 ],
                                 alignment=ft.MainAxisAlignment.START,
                             ),
