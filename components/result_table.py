@@ -104,22 +104,37 @@ class ResultTablePage(ft.UserControl):
             rows=less_rows,
         )
 
+        score_summary_map = {}
+        for settlement in user.score_transaction:
+            score_summary_map[settlement.to] = score_summary_map.get(settlement.to, 0) + settlement.yen
+
+        all_payers = set(less_summary_map.keys()) | set(score_summary_map.keys())
         less_summary_rows = []
-        if len(less_summary_map) <= 0:
+        if len(all_payers) <= 0:
             less_summary_rows.append(
                 ft.DataRow(
                     cells=[
                         ft.DataCell(ft.Text("なし")),
                         ft.DataCell(ft.Text("0円")),
+                        ft.DataCell(ft.Text("0円")),
+                        ft.DataCell(ft.Text("0円")),
                     ]
                 )
             )
         else:
-            for to, total in sorted(less_summary_map.items(), key=lambda x: x[1], reverse=True):
+            merged = []
+            for to in all_payers:
+                score_total = score_summary_map.get(to, 0)
+                bonus_total = less_summary_map.get(to, 0)
+                merged.append((to, score_total, bonus_total, score_total + bonus_total))
+
+            for to, score_total, bonus_total, total in sorted(merged, key=lambda x: x[3], reverse=True):
                 less_summary_rows.append(
                     ft.DataRow(
                         cells=[
                             ft.DataCell(ft.Text(to)),
+                            ft.DataCell(ft.Text(f"{score_total:,}円")),
+                            ft.DataCell(ft.Text(f"{bonus_total:,}円")),
                             ft.DataCell(ft.Text(f"{total:,}円")),
                         ],
                     )
@@ -132,6 +147,8 @@ class ResultTablePage(ft.UserControl):
             border=ft.border.all(2, "black"),
             columns=[
                 ft.DataColumn(ft.Text("振込先")),
+                ft.DataColumn(ft.Text("得点精算")),
+                ft.DataColumn(ft.Text("祝儀")),
                 ft.DataColumn(ft.Text("合計金額")),
             ],
             rows=less_summary_rows,
@@ -147,14 +164,21 @@ class ResultTablePage(ft.UserControl):
             border=ft.border.all(2, "black"),
             columns=[
                 ft.DataColumn(ft.Text("得点")),
-                ft.DataColumn(ft.Text("祝儀")),
+                ft.DataColumn(ft.Text("祝儀収益")),
+                ft.DataColumn(ft.Text("祝儀支払")),
                 ft.DataColumn(ft.Text("結果")),
             ],
             rows=[
                 ft.DataRow(
                     cells=[
                         ft.DataCell(ft.Text(f"{user.score_yen:,}円")),
-                        ft.DataCell(ft.Text(f"{bonus_total:,}円")),
+                        ft.DataCell(ft.Text(f"{user.bonus_yen:,}円")),
+                        ft.DataCell(
+                            ft.Text(
+                                f"-{less_total:,}円",
+                                color=ft.Colors.RED if less_total > 0 else None,
+                            )
+                        ),
                         ft.DataCell(
                             ft.Text(f"{result:,}円", color=ft.Colors.RED if result < 0 else ft.Colors.GREEN_900)
                         ),

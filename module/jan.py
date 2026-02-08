@@ -6,7 +6,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 
-from module.data import Bonus, User
+from module.data import Bonus, Settlement, User
 from module.jansoul import Jansoul
 
 
@@ -86,6 +86,41 @@ class Jan:
 
                 t.yen = yen
 
+        self._count_score_transaction()
+
+    def _count_score_transaction(self):
+        # 胴元なし精算:
+        # 下位から上位へ、min(支払い残, 受け取り残)で順に充当する
+        rank_index = {id(user): i for i, user in enumerate(self.users)}
+        debtors = sorted(
+            [user for user in self.users if user.score_yen < 0],
+            key=lambda user: rank_index[id(user)],
+            reverse=True,
+        )
+        creditors = sorted(
+            [user for user in self.users if user.score_yen > 0],
+            key=lambda user: rank_index[id(user)],
+        )
+        creditor_remaining = {id(user): user.score_yen for user in creditors}
+
+        for debtor in debtors:
+            debtor.score_transaction.clear()
+            remain = -debtor.score_yen
+
+            for creditor in creditors:
+                if remain <= 0:
+                    break
+
+                cid = id(creditor)
+                c_remain = creditor_remaining[cid]
+                if c_remain <= 0:
+                    continue
+
+                pay = min(remain, c_remain)
+                debtor.score_transaction.append(Settlement(to=creditor.nickname, yen=pay))
+                remain -= pay
+                creditor_remaining[cid] -= pay
+
     def _count_chip(self, user: User) -> int:
         members_count = 2 if self.samma else 3
         chip_sum = user.ura_dora + user.aka_dora + user.ippatsu
@@ -150,14 +185,26 @@ class Jan:
                 f"[red]-{less_sum}円[/]",
             )
 
+            score_summary = {}
+            for s in user.score_transaction:
+                score_summary[s.to] = score_summary.get(s.to, 0) + s.yen
+
             less_summary_table = Table(show_header=True, header_style="bold magenta")
             less_summary_table.add_column("振り込み先")
+            less_summary_table.add_column("得点精算", justify="right")
+            less_summary_table.add_column("祝儀", justify="right")
             less_summary_table.add_column("合計金額", justify="right")
-            if len(less_summary) == 0:
-                less_summary_table.add_row("なし", "0円")
+            all_tos = set(less_summary.keys()) | set(score_summary.keys())
+            if len(all_tos) == 0:
+                less_summary_table.add_row("なし", "0円", "0円", "0円")
             else:
-                for to, total in sorted(less_summary.items(), key=lambda x: x[1], reverse=True):
-                    less_summary_table.add_row(to, f"{total}円")
+                merged = []
+                for to in all_tos:
+                    score_total = score_summary.get(to, 0)
+                    bonus_total = less_summary.get(to, 0)
+                    merged.append((to, score_total, bonus_total, score_total + bonus_total))
+                for to, score_total, bonus_total, total in sorted(merged, key=lambda x: x[3], reverse=True):
+                    less_summary_table.add_row(to, f"{score_total}円", f"{bonus_total}円", f"{total}円")
 
             bonus_total = user.bonus_yen - less_sum
 

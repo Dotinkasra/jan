@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
+
 class Bonus(Enum):
     aka_dora = "赤ドラ"
     ura_dora = "裏ドラ"
@@ -17,7 +18,13 @@ class Hule:
     bonus: Bonus #ご祝儀の題名
     yen: int = 0 #支払い金額
 
- 
+
+@dataclass
+class Settlement:
+    to: str  # 支払い相手
+    yen: int = 0  # 支払い金額
+
+
 @dataclass
 class User:
     seat: int #着順
@@ -39,6 +46,7 @@ class User:
     yiman_tumo: int = 0
     chip: int = 0
     transaction: list[Hule] = field(default_factory=list)
+    score_transaction: list[Settlement] = field(default_factory=list)
 
     def myless(self) -> int:
         total = 0
